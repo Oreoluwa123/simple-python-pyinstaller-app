@@ -1,19 +1,20 @@
 pipeline {
-    agent none //1
+    agent none
+    options {
+        skipStagesAfterUnstable()
+    }
     stages {
-        stage('Build') { //2
+        stage('Build') {
             agent {
                 docker {
-                    image 'python:2-alpine' //3
+                    image 'python:2-alpine'
                 }
             }
             steps {
-                sh 'python -m py_compile sources/add2vals.py sources/calc.py' //4
+                sh 'python -m py_compile sources/add2vals.py sources/calc.py'
             }
         }
-    }
-}
-stage('Test') {
+        stage('Test') {
             agent {
                 docker {
                     image 'qnib/pytest'
@@ -28,18 +29,20 @@ stage('Test') {
                 }
             }
         }
-stage('Deliver') {
+        stage('Deliver') { //1
             agent {
                 docker {
-                    image 'cdrx/pyinstaller-linux:python2'
+                    image 'cdrx/pyinstaller-linux:python2' //2
                 }
             }
             steps {
-                sh 'pyinstaller --onefile sources/add2vals.py'
+                sh 'pyinstaller --onefile sources/add2vals.py' //3
             }
             post {
                 success {
-                    archiveArtifacts 'dist/add2vals'
+                    archiveArtifacts 'dist/add2vals' //4
                 }
             }
         }
+    }
+}
